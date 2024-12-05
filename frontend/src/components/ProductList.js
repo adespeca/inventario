@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import { Grid, Card, CardContent, Typography, CardActions, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import {
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  CardActions,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import { useAuth } from "../AuthContext";
+import { format, parseISO } from "date-fns";
 
-
-import { useAuth } from '../AuthContext';
-import { format, parseISO } from 'date-fns';
-
-const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
+const ProductList = ({ products, onDeleteProduct, setProducts }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [startDate, setStartDate] = useState(""); // Fecha inicial del filtro
@@ -30,31 +43,26 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
         const response = await fetch(`http://127.0.0.1:5000/api/products/${selectedProduct._id}`, {
           method: "DELETE",
         });
-  
+
         if (!response.ok) {
           throw new Error("Error al eliminar el producto");
         }
-  
-        // Aquí, después de la eliminación, obtienes nuevamente los productos
-        //await fetchProducts(); // Actualiza la lista de productos
 
-        // Llama a la función que obtendrá los productos actualizados
-        onDeleteProduct(); // Llama a fetchProducts para actualizar la lista de productos
-  
-        handleCloseDialog(); // Cierra el diálogo
+        // Llama a la función pasada desde el componente padre para actualizar productos
+        onDeleteProduct();
+        handleCloseDialog();
       } catch (error) {
         console.error("Error al eliminar el producto:", error);
       }
     }
   };
-  
 
   const handleEditClick = (product) => {
     setEditProduct(product);
   };
 
   const handleCloseEditDialog = () => {
-    setEditProduct(null); // Cerrar el formulario de edición
+    setEditProduct(null);
   };
 
   const handleSaveEdit = async () => {
@@ -67,28 +75,26 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
           },
           body: JSON.stringify(editProduct),
         });
-        console.log("prueba");
+
         if (!response.ok) {
           throw new Error("Error al editar el producto");
         }
-  
-        const updatedData = await response.json();
-  
-        // Aquí debes actualizar la lista de productos en el estado del componente padre
-        const updatedProducts = products.map((product) =>
-          product.id === updatedData.id ? updatedData : product
+
+        const updatedProduct = await response.json();
+
+        // Actualiza la lista de productos en el componente padre
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product._id === updatedProduct._id ? updatedProduct : product
+          )
         );
-  
-        // Actualizar el estado de los productos en el componente Dashboard
-        setProducts(updatedProducts); // Usar setProducts para actualizar el estado local
-  
-        handleCloseEditDialog(); // Cerrar el formulario de edición
+
+        handleCloseEditDialog();
       } catch (error) {
         console.error("Error al editar el producto:", error);
       }
     }
   };
-  
 
   // Filtrar productos por rango de fecha
   const filteredProducts = products.filter((product) => {
@@ -101,15 +107,21 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
     return true;
   });
 
-  // Condiciones para habilitar/deshabilitar
-  const isAdmin = role === 'admin'; // Si el rol es 'admin', habilita los botones
+  const isAdmin = role === "admin";
 
   return (
     <div>
       <Grid container spacing={4} style={{ marginTop: "20px" }}>
         {filteredProducts.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card sx={{ backgroundColor: "#fff", boxShadow: "0 4px 10px rgba(0,0,0,0.1)", borderRadius: "8px", padding: "16px" }}>
+          <Grid item xs={12} sm={6} md={4} key={product._id}>
+            <Card
+              sx={{
+                backgroundColor: "#fff",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                borderRadius: "8px",
+                padding: "16px",
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "#333" }}>
                   {product.name}
@@ -117,33 +129,48 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
                 <Typography color="textSecondary" sx={{ marginBottom: "8px" }}>
                   <strong>Precio:</strong> ${Number(product.price).toFixed(2) || "N/A"}
                 </Typography>
-                <Typography color={product.quantity < 5 ? "error" : "textSecondary"} sx={{ marginBottom: "8px" }}>
+                <Typography
+                  color={product.quantity < 5 ? "error" : "textSecondary"}
+                  sx={{ marginBottom: "8px" }}
+                >
                   <strong>Cantidad en Inventario:</strong> {product.quantity}
                 </Typography>
                 <Typography color="textSecondary" sx={{ marginBottom: "8px" }}>
                   <strong>Cantidad Vendida:</strong> {product.sales || 0}
                 </Typography>
                 <Typography color="textSecondary" sx={{ marginBottom: "8px" }}>
-                  <strong>Provider:</strong> {product.provider || 0}
+                  <strong>Proveedor:</strong> {product.provider || "N/A"}
                 </Typography>
                 <Typography color="textSecondary" sx={{ marginBottom: "16px" }}>
                   <strong>Categoría:</strong> {product.category || "N/A"}
                 </Typography>
                 <Typography color="textSecondary" sx={{ marginBottom: "8px" }}>
-                  <strong>Fecha Agregado:</strong> {format(parseISO(product.dateAdded), 'dd/MM/yyyy')}
+                  <strong>Fecha Agregado:</strong>{" "}
+                  {format(parseISO(product.dateAdded), "dd/MM/yyyy")}
                 </Typography>
                 <img
-              src={product.image}
-              alt="Vista previa"
-              style={{ maxWidth: "200px", height: "auto", marginTop: "10px" }}
-            />
+                  src={product.image}
+                  alt="Vista previa"
+                  style={{ maxWidth: "200px", height: "auto", marginTop: "10px" }}
+                />
               </CardContent>
-
               <CardActions sx={{ justifyContent: "space-between" }}>
-                <Button size="small" color="primary" variant="outlined" disabled={!isAdmin} onClick={() => handleEditClick(product)}>
+                <Button
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  disabled={!isAdmin}
+                  onClick={() => handleEditClick(product)}
+                >
                   Editar
                 </Button>
-                <Button size="small" color="secondary" onClick={() => handleDeleteClick(product)} variant="outlined" disabled={!isAdmin}>
+                <Button
+                  size="small"
+                  color="secondary"
+                  onClick={() => handleDeleteClick(product)}
+                  variant="outlined"
+                  disabled={!isAdmin}
+                >
                   Eliminar
                 </Button>
               </CardActions>
@@ -157,7 +184,8 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
           <Typography variant="body1">
-            ¿Estás seguro de que deseas eliminar el producto <strong>{selectedProduct?.name}</strong>?
+            ¿Estás seguro de que deseas eliminar el producto{" "}
+            <strong>{selectedProduct?.name}</strong>?
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -199,35 +227,33 @@ const ProductList = ({ products, onDeleteProduct, setProducts  }) => {
                 onChange={(e) => setEditProduct({ ...editProduct, quantity: e.target.value })}
                 margin="normal"
               />
-               <TextField
-                label="Cantidad Vendida:"
+              <TextField
+                label="Cantidad Vendida"
                 type="number"
                 fullWidth
                 value={editProduct.sales}
                 onChange={(e) => setEditProduct({ ...editProduct, sales: e.target.value })}
                 margin="normal"
-              /> 
+              />
               <TextField
-                label="Provider"
+                label="Proveedor"
                 fullWidth
                 value={editProduct.provider}
                 onChange={(e) => setEditProduct({ ...editProduct, provider: e.target.value })}
                 margin="normal"
               />
-              {/* Campo para seleccionar la categoría */}
               <FormControl fullWidth margin="normal">
                 <InputLabel>Categoría</InputLabel>
                 <Select
                   label="Categoría"
-                  value={editProduct.category}  // El valor es controlado por editProduct.category
-                  onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}  // Actualiza la categoría seleccionada
+                  value={editProduct.category}
+                  onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}
                 >
                   <MenuItem value="Electrónica">Electrónica</MenuItem>
                   <MenuItem value="Ropa">Ropa</MenuItem>
                   <MenuItem value="Hogar">Hogar</MenuItem>
                 </Select>
               </FormControl>
-    
             </>
           )}
         </DialogContent>

@@ -27,7 +27,7 @@ const ProductManagement = ({ onProductAdded }) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
-      setImage(imageUrl);
+      setImage(imageUrl); // Para la vista previa
     }
   };
 
@@ -39,21 +39,25 @@ const ProductManagement = ({ onProductAdded }) => {
       return;
     }
 
+    // Crear un FormData para enviar los datos del producto y la imagen
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("price", price);
+    formData.append("quantity", quantity);
+    formData.append("sales", sales);
+    formData.append("category", category);
+    formData.append("provider", provider);
+
+    // Verifica si la imagen está presente y la agrega al FormData
+    if (image) {
+      const file = document.getElementById("upload-button-file").files[0];
+      formData.append("image", file);
+    }
+
     try {
       const response = await fetch("http://127.0.0.1:5000/api/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          price: Number(price),
-          quantity: Number(quantity),
-          category,
-          provider: provider,
-          sales: Number(sales),
-          image: image,// Nota: la imagen debe enviarse al servidor por separado (por ejemplo, con FormData)
-        }),
+        body: formData, // Enviar el FormData con la imagen
       });
 
       if (!response.ok) {
@@ -63,13 +67,14 @@ const ProductManagement = ({ onProductAdded }) => {
       const data = await response.json();
       console.log("Producto Agregado:", data);
 
+      // Resetear el formulario después de agregar el producto
       setName("");
       setPrice("");
       setQuantity("");
-      setSales("");
+      setSales(0);
       setProvider("");
       setCategory("");
-      setImage(null); // Limpia la imagen seleccionada
+      setImage(null);
       setError(null);
       setSuccess(true);
 
@@ -138,7 +143,6 @@ const ProductManagement = ({ onProductAdded }) => {
         fullWidth
         margin="normal"
       />
-      
 
       <FormControl fullWidth margin="normal">
         <InputLabel>Categoría</InputLabel>
@@ -148,9 +152,9 @@ const ProductManagement = ({ onProductAdded }) => {
           label="Categoría"
           required
         >
-          <MenuItem value="Electrónica">Electrónica</MenuItem>
-          <MenuItem value="Ropa">Ropa</MenuItem>
-          <MenuItem value="Hogar">Hogar</MenuItem>
+          <MenuItem value="herramienta">herramienta</MenuItem>
+          <MenuItem value="plomeriañ">plomeriañ</MenuItem>
+          <MenuItem value="bombillos">bombillos</MenuItem>
         </Select>
       </FormControl>
 
@@ -161,6 +165,7 @@ const ProductManagement = ({ onProductAdded }) => {
           style={{ display: "none" }}
           id="upload-button-file"
           type="file"
+          name="image"
           onChange={handleFileChange}
         />
         <label htmlFor="upload-button-file">
