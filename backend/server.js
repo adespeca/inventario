@@ -59,7 +59,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
     if (imageFile) {
       // Subir la imagen directamente usando Cloudinary
       const result = await cloudinary.uploader.upload(
-        `data:${imageFile.mimetype};base64,${imageFile.buffer.toString('base64')}`, 
+        `data:${imageFile.mimetype};base64,${imageFile.buffer.toString('base64')}`,
         { resource_type: 'image' }
       );
       imageUrl = result.secure_url; // URL de la imagen subida
@@ -133,19 +133,44 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // Endpoint para actualizar un producto
-app.put('/api/products/:id', async (req, res) => {
+app.put('/api/products/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
-  const { name, price, quantity, category, sales, provider, image } = req.body;
+  const { name, price, quantity, category, sales, provider } = req.body;
+  const imageFile = req.file; // La imagen puede estar incluida en la solicitud
+
   try {
+    let imageUrl = undefined;
+
+    // Si se proporciona una nueva imagen, subirla a Cloudinary
+    if (imageFile) {
+      const result = await cloudinary.uploader.upload(
+        `data:${imageFile.mimetype};base64,${imageFile.buffer.toString('base64')}`,
+        { resource_type: 'image' }
+      );
+      imageUrl = result.secure_url; // Obtener la URL de la imagen subida
+    }
+
+    // Si no hay nueva imagen, no se actualiza el campo de imagen
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      { name, price, quantity, category, sales, provider, image },
+      {
+        name,
+        price,
+        quantity,
+        category,
+        sales,
+        provider,
+        image: imageUrl !== undefined ? imageUrl : undefined // Mantener la imagen si no hay nueva
+      },
       { new: true } // Devuelve el producto actualizado
     );
+
     if (!updatedProduct) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
-    res.json(updatedProduct);
+
+    res.json(updatedProduct); // Retornar el producto actualizado
+
   } catch (error) {
     console.error('Error al actualizar el producto:', error);
     res.status(500).json({ error: 'Error al actualizar el producto' });

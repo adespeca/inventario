@@ -130,9 +130,9 @@ const Dashboard = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
               <MenuItem value="">Todas</MenuItem>
-              <MenuItem value="Electrónica">Electrónica</MenuItem>
-              <MenuItem value="Ropa">Ropa</MenuItem>
-              <MenuItem value="Hogar">Hogar</MenuItem>
+              <MenuItem value="herramienta">herramienta</MenuItem>
+              <MenuItem value="plomeria">plomeria</MenuItem>
+              <MenuItem value="bombillos">bombillos</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} md={4}>

@@ -51,6 +51,7 @@ const ProductManagement = ({ onProductAdded }) => {
     // Verifica si la imagen está presente y la agrega al FormData
     if (image) {
       const file = document.getElementById("upload-button-file").files[0];
+      console.log(file);
       formData.append("image", file);
     }
 
@@ -153,7 +154,7 @@ const ProductManagement = ({ onProductAdded }) => {
           required
         >
           <MenuItem value="herramienta">herramienta</MenuItem>
-          <MenuItem value="plomeriañ">plomeriañ</MenuItem>
+          <MenuItem value="plomeria">plomeria</MenuItem>
           <MenuItem value="bombillos">bombillos</MenuItem>
         </Select>
       </FormControl>
