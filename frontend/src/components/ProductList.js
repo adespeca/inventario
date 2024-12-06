@@ -26,6 +26,22 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
   const [endDate, setEndDate] = useState(""); // Fecha final del filtro
   const { role } = useAuth(); // Obtén el rol del usuario
   const [editProduct, setEditProduct] = useState(null); // Estado para el producto que se edita
+  const [imagePreview, setImagePreview] = useState(null); // Estado para la vista previa de la imagen
+  const [image, setImage] = useState(null); // Estado para la imagen seleccionada
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    console.log(file);
+    console.log(image);
+    //setImage(file);//
+    if (file) { setImage(file);
+      const imageUrl = URL.createObjectURL(file);
+      setImage(imageUrl); // Para la vista previa
+      //setImage(file);//
+      setImagePreview(URL.createObjectURL(file)); // Mostrar vista previa de la imagen
+      setEditProduct({ ...editProduct, image: file }); // Guardar el archivo en el estado del producto
+    }
+  };
 
   const handleDeleteClick = (product) => {
     setSelectedProduct(product);
@@ -59,12 +75,20 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
 
   const handleEditClick = (product) => {
     setEditProduct(product);
+    setImagePreview(product.image); // Establecer la imagen actual en la vista previa
   };
 
   const handleCloseEditDialog = () => {
     setEditProduct(null);
+    setImagePreview(null); // Limpiar la vista previa al cerrar el diálogo
   };
-
+ /* const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file)); // Mostrar vista previa de la imagen
+      setEditProduct({ ...editProduct, image: file }); // Guardar el archivo en el estado del producto
+    }
+  };*/
   const handleSaveEdit = async () => {
     if (editProduct) {
       try {
@@ -249,11 +273,13 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
                   value={editProduct.category}
                   onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}
                 >
-                  <MenuItem value="Electrónica">Electrónica</MenuItem>
-                  <MenuItem value="Ropa">Ropa</MenuItem>
-                  <MenuItem value="Hogar">Hogar</MenuItem>
+                  <MenuItem value="herramienta">herramienta</MenuItem>
+                  <MenuItem value="plomeria">plomeria</MenuItem>
+                  <MenuItem value="bombillos">bombillos</MenuItem>
                 </Select>
               </FormControl>
+              <input type="file" accept="image/*" onChange={handleFileChange} />
+              {imagePreview && <img src={imagePreview} alt="Vista previa" style={{ maxWidth: "200px", marginTop: "10px" }} />}
             </>
           )}
         </DialogContent>
