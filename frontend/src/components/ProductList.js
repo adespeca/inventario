@@ -27,19 +27,17 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
   const { role } = useAuth(); // Obtén el rol del usuario
   const [editProduct, setEditProduct] = useState(null); // Estado para el producto que se edita
   const [imagePreview, setImagePreview] = useState(null); // Estado para la vista previa de la imagen
-  const [image, setImage] = useState(null); // Estado para la imagen seleccionada
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    console.log(file);
-    console.log(image);
-    //setImage(file);//
-    if (file) { setImage(file);
+    if (file) {
       const imageUrl = URL.createObjectURL(file);
-      setImage(imageUrl); // Para la vista previa
-      //setImage(file);//
-      setImagePreview(URL.createObjectURL(file)); // Mostrar vista previa de la imagen
-      setEditProduct({ ...editProduct, image: file }); // Guardar el archivo en el estado del producto
+      setImagePreview(imageUrl);
+
+      setEditProduct((prev) => ({
+        ...prev,
+        image: file, // Adjuntar el archivo al producto
+      }));
     }
   };
 
@@ -82,37 +80,46 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
     setEditProduct(null);
     setImagePreview(null); // Limpiar la vista previa al cerrar el diálogo
   };
- /* const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImagePreview(URL.createObjectURL(file)); // Mostrar vista previa de la imagen
-      setEditProduct({ ...editProduct, image: file }); // Guardar el archivo en el estado del producto
-    }
-  };*/
+
   const handleSaveEdit = async () => {
     if (editProduct) {
       try {
+        // Crear una instancia de FormData
+        const formData = new FormData();
+  
+        // Añadir los datos del producto al FormData
+        formData.append("name", editProduct.name);
+        formData.append("price", editProduct.price);
+        formData.append("quantity", editProduct.quantity);
+        formData.append("category", editProduct.category);
+        formData.append("sales", editProduct.sales);
+        formData.append("provider", editProduct.provider);
+  
+        // Si se seleccionó una nueva imagen, agregarla al FormData
+        if (editProduct.image && editProduct.image instanceof File) {
+          formData.append("image", editProduct.image); // El archivo seleccionado
+        }
+  
+        // Realizar la solicitud PUT al servidor
         const response = await fetch(`http://127.0.0.1:5000/api/products/${editProduct._id}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(editProduct),
+          body: formData, // Enviar el FormData directamente
         });
-
+  
         if (!response.ok) {
           throw new Error("Error al editar el producto");
         }
-
+  
         const updatedProduct = await response.json();
-
-        // Actualiza la lista de productos en el componente padre
+  
+        // Actualizar la lista de productos en el componente padre
         setProducts((prevProducts) =>
           prevProducts.map((product) =>
             product._id === updatedProduct._id ? updatedProduct : product
           )
         );
-
+  
+        // Cerrar el cuadro de diálogo de edición
         handleCloseEditDialog();
       } catch (error) {
         console.error("Error al editar el producto:", error);
@@ -279,7 +286,13 @@ const ProductList = ({ products, onDeleteProduct, setProducts }) => {
                 </Select>
               </FormControl>
               <input type="file" accept="image/*" onChange={handleFileChange} />
-              {imagePreview && <img src={imagePreview} alt="Vista previa" style={{ maxWidth: "200px", marginTop: "10px" }} />}
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Vista previa"
+                  style={{ maxWidth: "200px", marginTop: "10px" }}
+                />
+              )}
             </>
           )}
         </DialogContent>

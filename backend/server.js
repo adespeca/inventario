@@ -137,8 +137,9 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const { name, price, quantity, category, sales, provider } = req.body;
   const imageFile = req.file; // La imagen puede estar incluida en la solicitud
-
+  
   try {
+    console.log(JSON.stringify(req.body));
     let imageUrl = undefined;
 
     // Si se proporciona una nueva imagen, subirla a Cloudinary
@@ -164,6 +165,7 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       },
       { new: true } // Devuelve el producto actualizado
     );
+    
 
     if (!updatedProduct) {
       return res.status(404).json({ error: 'Producto no encontrado' });
